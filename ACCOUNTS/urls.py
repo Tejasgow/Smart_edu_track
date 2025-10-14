@@ -10,6 +10,6 @@ urlpatterns = [
     path('PasswordCofirm/',views.PasswordResetConfirmView.as_view(),name="ConfirmPassword"),
     path('gettoken/', TokenObtainPairView.as_view(), name='token_obtain_pair'),   # Login
     path('token-refresh/', TokenRefreshView.as_view(), name='token_refresh'),  # Refresh
-    path('token-verify/', TokenVerifyView.as_view(), name='token_verify'),      # 👈 Verify Token
+    path('token-verify/', TokenVerifyView.as_view(), name='token_verify'),      # Verify Token
 ]
 
