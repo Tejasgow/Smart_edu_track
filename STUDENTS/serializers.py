@@ -1,6 +1,6 @@
 from rest_framework import serializers
-from ACCOUNTS.models import User
-from .models import Student, Standard , Section , ParentStudent
+from ACCOUNTS.models import user
+from .models import Student, Standard , Section , ParentStudent,Attendance
 
 
 
@@ -19,7 +19,7 @@ class StudentRegistrationSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
 
-        users = User.objects.create(
+        users = user.objects.create(
             username = validated_data['email'],
             email = validated_data['email'],
             password = validated_data['password'],
@@ -62,8 +62,8 @@ class LinkParentSerializer(serializers.ModelSerializer):
 
     def validate(self,data):
         try:
-            parent = User.objects.get(id=data['parent_id'],role="parent")
-        except User.DoesNotExist:
+            parent = user.objects.get(id=data['parent_id'],role="parent")
+        except user.DoesNotExist:
             raise serializers.ValidationError("invalid parent_id or user is not a perfect")
         try:
             student = Student.objects.get(id=data["student_id"])
@@ -73,7 +73,7 @@ class LinkParentSerializer(serializers.ModelSerializer):
     
 
     def create(self,validated_data):
-        parent = User.objects.get(id=validated_data['parent_id'])
+        parent = user.objects.get(id=validated_data['parent_id'])
         student = Student.objects.get(id=validated_data['student_id'])
         link , created = ParentStudent.objects.get_or_create(parent=parent , student=student)
         return link
@@ -87,13 +87,10 @@ class LinkParentSerializer(serializers.ModelSerializer):
 
         }
         
-
-
 class SectionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Section
         fields = '__all__'
-
 
 class StandardSerializer(serializers.ModelSerializer):
     sections = SectionSerializer(many=True, read_only = True)
@@ -102,3 +99,31 @@ class StandardSerializer(serializers.ModelSerializer):
         model = Standard
         fields = '__all__'
 
+class AttendanceSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attendance
+        fields =["id","Student","Date","Status","Marked_by"]
+        read_only_fields = ["id","Marked_by"]
+
+class AttendanceMarkSerializer(serializers.Serializer):
+
+    Student_id = serializers.IntegerField()
+    Date = serializers.DateField()
+    Status = serializers.ChoiceField(choices=[("PRESENT","Present"),("ABSENT","Absent")])
+
+class AttendanceDailySerializer(serializers.ModelSerializer):
+    Student_name = serializers.StringRelatedField(source='Student.users.full_name', read_only=True)
+    Standard = serializers.CharField(source='Student.standard.name', read_only=True)
+    Section = serializers.CharField(source='Student.section.name', read_only=True)
+
+    class Meta:
+        model = Attendance
+        fields =["id","Date","Status","Marked_by","Student_name","Standard","Section"]
+        
+class StudentAttendanceSummarySerializer(serializers.ModelSerializer):
+  Student_name = serializers.StringRelatedField()
+  Standard = serializers.CharField()
+  Section = serializers.CharField()
+  Total_Days_Present = serializers.IntegerField()
+  Total_Days_Absent = serializers.IntegerField()
+  Attendance_Percentage = serializers.FloatField()

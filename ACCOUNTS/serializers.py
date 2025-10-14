@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import User
+from .models import user
 from django.contrib.auth import authenticate
 from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
@@ -9,7 +9,7 @@ class CreateUserserializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
-        model=User
+        model=user
         fields=['username','email','password','role','first_name','last_name']
 
     def validate_role(self,value):
@@ -19,7 +19,7 @@ class CreateUserserializer(serializers.ModelSerializer):
     
     def create(self,validated_data):
         password = validated_data.pop('password')
-        users = User(**validated_data)
+        users = user(**validated_data)
         users.set_password(password)
         users.save()
         return users
@@ -29,17 +29,16 @@ class CreateStudentSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
 
     class Meta:
-        model = User
+        model = user
         fields = ['id', 'username', 'email', 'first_name', 'last_name', 'role', 'password']
 
     def validate_role(self, value):
         if value != 'student':  
             raise serializers.ValidationError("Role student")
         return value
-
     def create(self, validated_data):   
         password = validated_data.pop('password')
-        users = User(**validated_data)
+        users = user(**validated_data)
         users.set_password(password)   
         users.save()
         return users
@@ -80,17 +79,11 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
     token = serializers.CharField()
     new_password = serializers.CharField(write_only=True)
 
-
-class PasswordResetConfirmSerializer(serializers.Serializer):
-    uid = serializers.CharField()
-    token = serializers.CharField()
-    new_password = serializers.CharField(write_only=True)
-
     def validate(self, data):
         try:
             uid = force_str(urlsafe_base64_decode(data('uid')))
-            users = User.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            users = user.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, user.DoesNotExist):
             raise serializers.ValidationError("Invalid UID.")
         if not default_token_generator.check_token(users, data['token']):
             raise serializers.ValidationError("Invalid or expired token.")

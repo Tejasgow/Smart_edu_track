@@ -1,8 +1,8 @@
 from django.contrib import admin
 
-from .models import User
+from .models import user
 
 class CustomUserAdmin(admin.ModelAdmin):
-    model=User
+    model=user
     list_display=('username','email')
-admin.site.register(User, CustomUserAdmin)
+admin.site.register(user, CustomUserAdmin)

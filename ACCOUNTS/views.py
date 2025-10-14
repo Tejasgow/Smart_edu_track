@@ -1,8 +1,7 @@
 from django.shortcuts import render
-
 from rest_framework.generics import CreateAPIView 
 from .serializers import CreateUserserializer , sessionloginserializer  , PasswordResetRequestSerializer , PasswordResetConfirmSerializer
-from .models import User
+from .models import user
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.views import APIView
@@ -13,7 +12,6 @@ from django.contrib.auth import login,logout
 from django.contrib.auth.tokens import default_token_generator
 from django.utils.http import urlsafe_base64_decode
 from django.utils.encoding import force_bytes
-
 
 
 class createTeacherParentView(CreateAPIView):
@@ -31,7 +29,7 @@ class sessionloginview(APIView):
         serializer = sessionloginserializer(data=request.data)
         if serializer.is_valid():
             users = serializer.validated_data
-            login(request,User)
+            login(request,user)
             return Response({
                 "message":"login successfully",
                 "users":{

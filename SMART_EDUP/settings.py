@@ -38,11 +38,15 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
+    'rest_framework_simplejwt',
+    'rest_framework.authtoken',
     'ACCOUNTS',
     'ASSIGNMENT',
     'PARENTS',
     'STUDENTS',
     'TEACHERS',
+    'PERFORMANCE',
+    'ATTENDANCE'
 ]
 
 MIDDLEWARE = [
@@ -60,10 +64,11 @@ ROOT_URLCONF = 'SMART_EDUP.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR/ 'Templates'],
+        'DIRS': [],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
+                'django.template.context_processors.debug',
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
@@ -128,3 +133,32 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'ACCOUNTS.User'
+
+
+
+REST_FRAMEWORK = {
+        'DEFAULT_AUTHENTICATION_CLASSES': (
+         'rest_framework_simplejwt.authentication.SessionAuthentication',
+    ),
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ),
+
+}
+from datetime import timedelta
+
+SIMPLE_JWT = {
+    'ACCESS_TOKEN_LIFETIME': timedelta(hours=24),   # Access token valid for 24 hours
+    'REFRESH_TOKEN_LIFETIME': timedelta(days=30),   # ✅ Refresh token valid for 30 days
+    
+
+    'ROTATE_REFERSH_TOKENS':False,
+    'BLACKLIST_AFTER_ROTATION': True,
+
+    'ALGORITHM':'HS256',
+    'SIGING_KEY':SECRET_KEY,
+
+  
+    'AUTH_HEADER_TYPES': ('Bearer',),
+    'AUTH_TOKEN_CLASSES':('rest_framework_simplejwt.tokens.AccessToken')
+}
