@@ -6,5 +6,4 @@ class Teacher(models.Model):
     email = models.EmailField(unique=True)
     subject = models.CharField(max_length=100)
 
-    def __str__(self):
-        return self.name
+    
