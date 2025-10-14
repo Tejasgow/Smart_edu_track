@@ -7,7 +7,6 @@ from django.contrib.auth.tokens import default_token_generator
 
 class CreateUserserializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True)
-
     class Meta:
         model=user
         fields=['username','email','password','role','first_name','last_name']
