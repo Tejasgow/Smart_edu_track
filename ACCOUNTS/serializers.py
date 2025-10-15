@@ -43,26 +43,24 @@ class CreateStudentSerializer(serializers.ModelSerializer):
         return users
     
 
-class sessionloginserializer(serializers.Serializer):
+
+class SessionLoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
 
+    def validate(self, data):
+        username = data.get("username")
+        password = data.get("password")
 
-    def validate(self,attrs):
-        username = attrs.get('username')
-        password = attrs.get('password')
+        user = authenticate(username=username, password=password)
+        if user is None:
+            raise serializers.ValidationError("Invalid credentials")
 
+        if not user.is_active:
+            raise serializers.ValidationError("User account is disabled")
 
-        users = authenticate(username=username , password=password)
-        
-        if not users:
-            raise serializers.ValidationError("invalid username or password")
-        
-        if not users.is_active:
-            raise serializers.ValidationError("account disabled, contact administartor")
-        return users
-
-
+        data['user'] = user
+        return data
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
 

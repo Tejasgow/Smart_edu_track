@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from rest_framework.generics import CreateAPIView 
-from .serializers import CreateUserserializer , sessionloginserializer  , PasswordResetRequestSerializer , PasswordResetConfirmSerializer
+from .serializers import CreateUserserializer , SessionLoginSerializer  , PasswordResetRequestSerializer , PasswordResetConfirmSerializer
 from .models import user
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.authentication import SessionAuthentication
@@ -19,28 +19,26 @@ class createTeacherParentView(CreateAPIView):
     permission_classes=[IsAuthenticated]
     authentication_classes=[SessionAuthentication]
 
-
     def post(self,request,*args,**kwargs):
         return super().post(request,*args,**kwargs)
 
-
-class sessionloginview(APIView):
-    def post(self,request,*args,**kwargs):
-        serializer = sessionloginserializer(data=request.data)
+class SessionLoginView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = SessionLoginSerializer(data=request.data)
         if serializer.is_valid():
-            users = serializer.validated_data
-            login(request,user)
+            user = serializer.validated_data['user']  # Extract the user
+            login(request, user)  # This logs in the user (creates session)
+
             return Response({
-                "message":"login successfully",
-                "users":{
-                    "id":users.id,
-                    "username":users.username,
-                    "email":users.email,
-                    "role":users.role,
+                "message": "Login successful",
+                "user": {
+                    "id": user.id,
+                    "username": user.username,
+                    "email": user.email,
+                    "role": user.role,
                 }
-            },status=status.HTTP_200_OK)
-        return Response(serializer.errors,status=status.HTTP_401_UNAUTHORIZED)
-    
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_401_UNAUTHORIZED)
 
 class sessionlogoutview(APIView):
     def get(self,request,*args,**kwargs):

@@ -6,11 +6,13 @@ from .serializers import (
     StudentRegistrationSerializer, LinkParentSerializer,
     SectionSerializer, StandardSerializer,
     AttendanceMarkSerializer, AttendanceSerializer,
-    AttendanceDailySerializer
+    SubjectSerializer
 )
-from .models import Student, ParentStudent, Standard, Section, Attendance
+from .models import Student, ParentStudent, Standard, Section, Attendance ,Subject
 from ACCOUNTS.models import user
 import json
+
+
 
 class IsTeacher(permissions.BasePermission):
     def has_permission(self, request, view):
@@ -36,47 +38,42 @@ class SectionListCreateView(generics.ListCreateAPIView):
     serializer_class = SectionSerializer
     permission_classes = [IsTeacher]
 
+class SubjectListCreateView(generics.ListCreateAPIView):
+    queryset = Subject.objects.all()
+    serializer_class = SubjectSerializer
+    permission_classes = [IsTeacher]
+
 class AttendanceMarkView(generics.CreateAPIView):
     queryset = Attendance.objects.all()
     serializer_class = AttendanceMarkSerializer
-    permission_classes = [IsTeacher]
+    permission_classes = []  # Add your permission classes here as needed
 
     def post(self, request, *args, **kwargs):
-        many = isinstance(request.data, list)
-        serializer = self.get_serializer(data=request.data, many=many)
+        data = request.data
+        many = isinstance(data, list)
+        serializer = self.get_serializer(data=data, many=many)
         serializer.is_valid(raise_exception=True)
+
+        teacher = request.user if request.user.is_authenticated else User.objects.get(id=10)
         records = []
 
-        if isinstance(serializer.validated_data, list):
-            for item in serializer.validated_data:
-                student_id = int(item["student_id"])
-                date = item["date"]
-                status_ = item["status"]
-                attendance = Attendance.objects.filter(student_id=student_id, date=date).first()
-                teacher = request.user
+        validated_items = serializer.validated_data if many else [serializer.validated_data]
 
-                if attendance:
-                    attendance.status = status_
-                    attendance.marked_by = teacher
-                    attendance.save()
-                else:
-                    obj = Attendance.objects.create(
-                        student_id=student_id,
-                        date=date,
-                        status=status_,
-                        marked_by=teacher
-                    )
-                    records.append(obj)
-        else:
-            obj, created = Attendance.objects.update_or_create(
-                student_id=int(serializer.validated_data["student_id"]),
-                date=serializer.validated_data['date'],
-                defaults={"status": serializer.validated_data["status"], "marked_by": request.user}
+        for item in validated_items:
+            attendance, created = Attendance.objects.update_or_create(
+                student_id=item["student_id"],
+                date=item["date"],
+                defaults={
+                    "status": item["status"],
+                    "marked_by": teacher
+                }
             )
-            records.append(obj)
+            records.append(attendance)
 
-        return Response(AttendanceSerializer(records, many=True).data, status=status.HTTP_200_OK)
-
+        return Response(
+            AttendanceSerializer(records, many=True).data,
+            status=status.HTTP_200_OK
+        )
 class StudentAttendanceView(generics.ListAPIView):
     serializer_class = AttendanceSerializer
     permission_classes = [IsAuthenticated]
@@ -178,31 +175,33 @@ class AttendanceReportParentView(generics.GenericAPIView):
 
         data = []
         
-        for student in linked_students:
-            user = student.user
+        for student_ in linked_students:
+            user = student_.user
             user_records = Attendance.objects.filter(student=user)
             if from_date and to_date:
                 user_records = user_records.filter(date__range=[from_date, to_date])
 
             if not user_records.exists():
                 continue
-            student_ = user_records.first().student
-            student_obj = Student.objects.get(user=student_)
+        
             total_days = user_records.count()
             total_present = user_records.filter(status="PRESENT").count()
             total_absent = user_records.filter(status="ABSENT").count()
 
-            data.append({
-                "student_name": f'{student_obj.user.first_name} {student_obj.user.last_name}',
-                "standard": student_obj.standard.name,
-                "section": student_obj.section.name,
+            child_data = {
+                "student_name": f"{student_.users.first_name} {student_.users.last_name}",
+                "standard": student_.standard.name,
+                "section": student_.section.name,
                 "summary": {
                     "total_days": total_days,
                     "present": total_present,
                     "absent": total_absent,
-                    "percentage": calculate_attendance_percentage(total_present, total_days),
+                    "percentage": calculate_attendance_percentage(total_present, total_days)
                 },
-                "records": AttendanceDailySerializer(user_records, many=True).data
-            })
+               "records": AttendanceMarkSerializer(user_records, many=True).data
+
+            }
+
+            data.append(child_data)
 
         return Response({"children": data})

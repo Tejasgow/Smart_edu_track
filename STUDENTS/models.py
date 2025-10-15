@@ -30,20 +30,33 @@ class ParentStudent(models.Model):
     student = models.ForeignKey("Student" , on_delete=models.CASCADE , related_name="parents")
 
     def __str__(self):
-        return f"{self.parent.get_full_name()} = {self.student.User.get_full_name()}"
+        return f"{self.parent.get_full_name()} = {self.student.users.get_full_name()}"
+
 
 class Attendance(models.Model):
-    Student = models.ForeignKey(
-        user,on_delete=models.CASCADE,
-        limit_choices_to={"role":"Student"},
-        related_name="Attendances"
+    student = models.ForeignKey(
+        user,
+        on_delete=models.CASCADE,
+        limit_choices_to={"role": "Student"},
+        related_name="attendances"
     )
-    Date = models.DateField()
-    Status = models.CharField(max_length=20, choices=[("PRESENT","Present"),("ABSENT","Absent")])
-    Marked_by = models.ForeignKey(user,on_delete=models.SET_NULL,null=True,related_name="Attendance_marked")
+    date = models.DateField()
+    status = models.CharField(
+        max_length=20,
+        choices=[("PRESENT", "Present"), ("ABSENT", "Absent")]
+    )
+    marked_by = models.ForeignKey(
+        user,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="attendance_marked"
+    )
+    class Meta:
+        unique_together = ("student", "date")
+        ordering = ["-date"]
 
     def __str__(self):
-        return f"{self.Student.username}-{self.date}-{self.Status}"
+        return f"{self.student.username} - {self.date} - {self.status}"
     
 class Subject(models.Model):
     Sub_name = models.CharField(max_length=50)
