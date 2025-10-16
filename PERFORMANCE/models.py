@@ -42,3 +42,4 @@ class Mark(models.Model):
 
     def __str__(self):
         return f"{self.student.name} - {self.subject.name} ({self.exam.name})"
+    

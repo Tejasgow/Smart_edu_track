@@ -30,6 +30,6 @@ class examSerializer(serializers.ModelSerializer):
             'section_name',
             'created_at',
             'created_by',
-            ''
+            
         ]
         read_only_fields = ['created_at', 'created_by']
