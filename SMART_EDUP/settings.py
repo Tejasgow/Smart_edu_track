@@ -40,13 +40,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework_simplejwt',
     'rest_framework.authtoken',
+    'reports',
     'ACCOUNTS',
     'ASSIGNMENT',
     'PARENTS',
     'STUDENTS',
     'TEACHERS',
     'PERFORMANCE',
-    'ATTENDANCE'
+    'ATTENDANCE',
+    'REPORT',
 ]
 
 MIDDLEWARE = [
